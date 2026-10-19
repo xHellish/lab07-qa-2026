@@ -1,0 +1,835 @@
+newman
+
+Integración API - Carrito
+
+Iteration 1/3
+
+□ Catálogo
+└ TC-01 Consultar catálogo
+  GET https://fakestoreapi.com/products [200 OK, 11.33kB, 286ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Response is a non empty product list
+  √  Every product has id, title and numeric price
+
+└ TC-02 Consultar detalle de producto
+  GET https://fakestoreapi.com/products/1 [200 OK, 1.04kB, 185ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Product id matches the selected product
+  √  Product price matches the catalog price
+  √  Product title matches the catalog title
+
+└ TC-03 Contrato estricto de productos
+  GET https://fakestoreapi.com/products [200 OK, 11.32kB, 185ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  id is an integer and title a non empty string
+  √  price is a positive number
+  √  category is one of the known categories
+  √  image is an https URL
+
+└ TC-04 Consultar categorías
+  GET https://fakestoreapi.com/products/categories [200 OK, 731B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Categories is a list of strings
+  √  Known categories are present
+
+□ Carrito
+└ TC-06 Crear carrito
+  POST https://fakestoreapi.com/carts [201 Created, 758B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Cart has a numeric id and the right user
+  √  Cart contains the selected products
+  √  Quantities are positive and match the request
+
+└ TC-07 Consultar carrito existente
+  GET https://fakestoreapi.com/carts/1 [200 OK, 830B, 279ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Cart has id, userId and date
+  √  Every line has integer productId and positive quantity
+
+└ TC-23 Actualizar cantidad del carrito
+  PUT https://fakestoreapi.com/carts/1 [200 OK, 732B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Updated cart keeps its id
+  √  Quantity was updated to 3
+
+└ TC-19 Idempotencia - repetir el mismo POST
+  POST https://fakestoreapi.com/carts [201 Created, 760B, 188ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Repeating the same POST returns the same cart id (no duplicate)
+  √  Repeating the same POST returns the same body
+
+└ TC-19 Consultar carrito recién creado
+  GET https://fakestoreapi.com/carts/11 [200 OK, 645B, 282ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  1. Created cart can be retrieved (DEF-08 if it fails)
+  2. Retrieved cart has products (DEF-08 if it fails)
+
+□ Total
+└ TC-08 Calcular total del carrito 1
+  GET https://fakestoreapi.com/carts/1 [200 OK, 832B, 279ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 183ms]
+  √  Price lookup succeeded
+  √  Calculated total is positive
+  √  Calculated total matches the expected total
+
+└ TC-10 Recalcular total del carrito creado
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 183ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Both cart products still exist in the catalog
+  √  Total at checkout equals the total at cart creation
+
+□ Checkout
+└ TC-05 Login (obtener token)
+  POST https://fakestoreapi.com/auth/login [201 Created, 803B, 279ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200 or 201
+  √  Response contains a token string
+  √  Token has JWT format (three parts)
+
+└ TC-11 Checkout con token
+  POST https://fakestoreapi.com/carts [201 Created, 758B, 184ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Request was sent with a Bearer token
+  √  Confirmed cart has id and the selected products
+  √  Checkout total matches the expected total
+
+└ TC-12 Checkout sin token
+  POST https://fakestoreapi.com/carts [201 Created, 762B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Request was sent without Authorization header
+  3. Status code is 401 without token (DEF-07 if it fails)
+  √  Response is not a server error
+
+□ Errores
+└ TC-13 Producto inexistente
+  GET https://fakestoreapi.com/products/9999 [200 OK, 602B, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  4. Status code is 404 (DEF-01 if it fails)
+  5. Error body explains the product does not exist (DEF-01 if it fails)
+  √  Response is not a server error
+
+└ TC-13 Carrito con producto inexistente
+  POST https://fakestoreapi.com/carts [201 Created, 717B, 187ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  6. Status code is 400 (DEF-09 if it fails)
+  √  Error response explains the problem (DEF-09 if it fails)
+
+└ TC-14 Cantidad cero
+  POST https://fakestoreapi.com/carts [201 Created, 708B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  7. Status code is 400 (DEF-02 if it fails)
+  √  Error response explains the problem (DEF-02 if it fails)
+
+└ TC-14 Cantidad negativa
+  POST https://fakestoreapi.com/carts [201 Created, 713B, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  8. Status code is 400 (DEF-02 if it fails)
+  √  Error response explains the problem (DEF-02 if it fails)
+
+└ TC-15 Body incompleto
+  POST https://fakestoreapi.com/carts [201 Created, 655B, 217ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  9. Status code is 400 (DEF-03 if it fails)
+  √  Error response explains the problem (DEF-03 if it fails)
+
+└ TC-16 Tipo de dato incorrecto
+  POST https://fakestoreapi.com/carts [201 Created, 692B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 10. Status code is 400 (DEF-04 if it fails)
+  √  Error response explains the problem (DEF-04 if it fails)
+
+└ TC-16 Id de producto no numérico
+  GET https://fakestoreapi.com/products/abc [200 OK, 608B, 178ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 11. Status code is 400 (DEF-05 if it fails)
+ 12. Error response explains the problem (DEF-05 if it fails)
+
+└ TC-17 JSON malformado
+  POST https://fakestoreapi.com/carts [400 Bad Request, 1.76kB, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 400
+  √  Error message says Bad Request
+ 13. Error is returned as JSON (DEF-06 if it fails)
+
+└ TC-18 Login con credenciales inválidas
+  POST https://fakestoreapi.com/auth/login [401 Unauthorized, 681B, 280ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 401
+  √  Error message is clear
+  √  No token is returned
+
+└ TC-18 Login sin credenciales
+  POST https://fakestoreapi.com/auth/login [400 Bad Request, 706B, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 400
+  √  Error message asks for username and password
+  √  No token is returned
+
+└ TC-22 Proveedor externo caído (mock)
+  ┌
+  │ 'mock_url is empty: skipping provider down mock'
+  └
+
+Iteration 2/3
+
+□ Catálogo
+└ TC-01 Consultar catálogo
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 186ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Response is a non empty product list
+  √  Every product has id, title and numeric price
+
+└ TC-02 Consultar detalle de producto
+  GET https://fakestoreapi.com/products/2 [200 OK, 1.25kB, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Product id matches the selected product
+  √  Product price matches the catalog price
+  √  Product title matches the catalog title
+
+└ TC-03 Contrato estricto de productos
+  GET https://fakestoreapi.com/products [200 OK, 11.32kB, 187ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  id is an integer and title a non empty string
+  √  price is a positive number
+  √  category is one of the known categories
+  √  image is an https URL
+
+└ TC-04 Consultar categorías
+  GET https://fakestoreapi.com/products/categories [200 OK, 739B, 178ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Categories is a list of strings
+  √  Known categories are present
+
+□ Carrito
+└ TC-06 Crear carrito
+  POST https://fakestoreapi.com/carts [201 Created, 762B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Cart has a numeric id and the right user
+  √  Cart contains the selected products
+  √  Quantities are positive and match the request
+
+└ TC-07 Consultar carrito existente
+  GET https://fakestoreapi.com/carts/1 [200 OK, 838B, 278ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Cart has id, userId and date
+  √  Every line has integer productId and positive quantity
+
+└ TC-23 Actualizar cantidad del carrito
+  PUT https://fakestoreapi.com/carts/1 [200 OK, 738B, 183ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Updated cart keeps its id
+  √  Quantity was updated to 3
+
+└ TC-19 Idempotencia - repetir el mismo POST
+  POST https://fakestoreapi.com/carts [201 Created, 756B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Repeating the same POST returns the same cart id (no duplicate)
+  √  Repeating the same POST returns the same body
+
+└ TC-19 Consultar carrito recién creado
+  GET https://fakestoreapi.com/carts/11 [200 OK, 645B, 278ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+ 14. Created cart can be retrieved (DEF-08 if it fails)
+ 15. Retrieved cart has products (DEF-08 if it fails)
+
+□ Total
+└ TC-08 Calcular total del carrito 1
+  GET https://fakestoreapi.com/carts/1 [200 OK, 836B, 278ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 179ms]
+  √  Price lookup succeeded
+  √  Calculated total is positive
+  √  Calculated total matches the expected total
+
+└ TC-10 Recalcular total del carrito creado
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 183ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Both cart products still exist in the catalog
+  √  Total at checkout equals the total at cart creation
+
+□ Checkout
+└ TC-05 Login (obtener token)
+  POST https://fakestoreapi.com/auth/login [201 Created, 801B, 279ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200 or 201
+  √  Response contains a token string
+  √  Token has JWT format (three parts)
+
+└ TC-11 Checkout con token
+  POST https://fakestoreapi.com/carts [201 Created, 768B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Request was sent with a Bearer token
+  √  Confirmed cart has id and the selected products
+  √  Checkout total matches the expected total
+
+└ TC-12 Checkout sin token
+  POST https://fakestoreapi.com/carts [201 Created, 752B, 188ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Request was sent without Authorization header
+ 16. Status code is 401 without token (DEF-07 if it fails)
+  √  Response is not a server error
+
+□ Errores
+└ TC-13 Producto inexistente
+  GET https://fakestoreapi.com/products/9999 [200 OK, 600B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 17. Status code is 404 (DEF-01 if it fails)
+ 18. Error body explains the product does not exist (DEF-01 if it fails)
+  √  Response is not a server error
+
+└ TC-13 Carrito con producto inexistente
+  POST https://fakestoreapi.com/carts [201 Created, 713B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 19. Status code is 400 (DEF-09 if it fails)
+  √  Error response explains the problem (DEF-09 if it fails)
+
+└ TC-14 Cantidad cero
+  POST https://fakestoreapi.com/carts [201 Created, 716B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 20. Status code is 400 (DEF-02 if it fails)
+  √  Error response explains the problem (DEF-02 if it fails)
+
+└ TC-14 Cantidad negativa
+  POST https://fakestoreapi.com/carts [201 Created, 707B, 183ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 21. Status code is 400 (DEF-02 if it fails)
+  √  Error response explains the problem (DEF-02 if it fails)
+
+└ TC-15 Body incompleto
+  POST https://fakestoreapi.com/carts [201 Created, 657B, 185ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 22. Status code is 400 (DEF-03 if it fails)
+  √  Error response explains the problem (DEF-03 if it fails)
+
+└ TC-16 Tipo de dato incorrecto
+  POST https://fakestoreapi.com/carts [201 Created, 696B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 23. Status code is 400 (DEF-04 if it fails)
+  √  Error response explains the problem (DEF-04 if it fails)
+
+└ TC-16 Id de producto no numérico
+  GET https://fakestoreapi.com/products/abc [200 OK, 606B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 24. Status code is 400 (DEF-05 if it fails)
+ 25. Error response explains the problem (DEF-05 if it fails)
+
+└ TC-17 JSON malformado
+  POST https://fakestoreapi.com/carts [400 Bad Request, 1.77kB, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 400
+  √  Error message says Bad Request
+ 26. Error is returned as JSON (DEF-06 if it fails)
+
+└ TC-18 Login con credenciales inválidas
+  POST https://fakestoreapi.com/auth/login [401 Unauthorized, 679B, 286ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 401
+  √  Error message is clear
+  √  No token is returned
+
+└ TC-18 Login sin credenciales
+  POST https://fakestoreapi.com/auth/login [400 Bad Request, 696B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 400
+  √  Error message asks for username and password
+  √  No token is returned
+
+└ TC-22 Proveedor externo caído (mock)
+  ┌
+  │ 'mock_url is empty: skipping provider down mock'
+  └
+
+Iteration 3/3
+
+□ Catálogo
+└ TC-01 Consultar catálogo
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Response is a non empty product list
+  √  Every product has id, title and numeric price
+
+└ TC-02 Consultar detalle de producto
+  GET https://fakestoreapi.com/products/3 [200 OK, 1.19kB, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Product id matches the selected product
+  √  Product price matches the catalog price
+  √  Product title matches the catalog title
+
+└ TC-03 Contrato estricto de productos
+  GET https://fakestoreapi.com/products [200 OK, 11.32kB, 183ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  id is an integer and title a non empty string
+  √  price is a positive number
+  √  category is one of the known categories
+  √  image is an https URL
+
+└ TC-04 Consultar categorías
+  GET https://fakestoreapi.com/products/categories [200 OK, 733B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Categories is a list of strings
+  √  Known categories are present
+
+□ Carrito
+└ TC-06 Crear carrito
+  POST https://fakestoreapi.com/carts [201 Created, 758B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Cart has a numeric id and the right user
+  √  Cart contains the selected products
+  √  Quantities are positive and match the request
+
+└ TC-07 Consultar carrito existente
+  GET https://fakestoreapi.com/carts/1 [200 OK, 830B, 281ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Cart has id, userId and date
+  √  Every line has integer productId and positive quantity
+
+└ TC-23 Actualizar cantidad del carrito
+  PUT https://fakestoreapi.com/carts/1 [200 OK, 734B, 187ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Updated cart keeps its id
+  √  Quantity was updated to 3
+
+└ TC-19 Idempotencia - repetir el mismo POST
+  POST https://fakestoreapi.com/carts [201 Created, 760B, 182ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Repeating the same POST returns the same cart id (no duplicate)
+  √  Repeating the same POST returns the same body
+
+└ TC-19 Consultar carrito recién creado
+  GET https://fakestoreapi.com/carts/11 [200 OK, 645B, 277ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+ 27. Created cart can be retrieved (DEF-08 if it fails)
+ 28. Retrieved cart has products (DEF-08 if it fails)
+
+□ Total
+└ TC-08 Calcular total del carrito 1
+  GET https://fakestoreapi.com/carts/1 [200 OK, 832B, 280ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  GET https://fakestoreapi.com/products [200 OK, 11.32kB, 180ms]
+  √  Price lookup succeeded
+  √  Calculated total is positive
+  √  Calculated total matches the expected total
+
+└ TC-10 Recalcular total del carrito creado
+  GET https://fakestoreapi.com/products [200 OK, 11.31kB, 183ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200
+  √  Both cart products still exist in the catalog
+  √  Total at checkout equals the total at cart creation
+
+□ Checkout
+└ TC-05 Login (obtener token)
+  POST https://fakestoreapi.com/auth/login [201 Created, 799B, 277ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 200 or 201
+  √  Response contains a token string
+  √  Token has JWT format (three parts)
+
+└ TC-11 Checkout con token
+  POST https://fakestoreapi.com/carts [201 Created, 764B, 180ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 201
+  √  Request was sent with a Bearer token
+  √  Confirmed cart has id and the selected products
+  √  Checkout total matches the expected total
+
+└ TC-12 Checkout sin token
+  POST https://fakestoreapi.com/carts [201 Created, 762B, 178ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Request was sent without Authorization header
+ 29. Status code is 401 without token (DEF-07 if it fails)
+  √  Response is not a server error
+
+□ Errores
+└ TC-13 Producto inexistente
+  GET https://fakestoreapi.com/products/9999 [200 OK, 612B, 194ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 30. Status code is 404 (DEF-01 if it fails)
+ 31. Error body explains the product does not exist (DEF-01 if it fails)
+  √  Response is not a server error
+
+└ TC-13 Carrito con producto inexistente
+  POST https://fakestoreapi.com/carts [201 Created, 709B, 188ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 32. Status code is 400 (DEF-09 if it fails)
+  √  Error response explains the problem (DEF-09 if it fails)
+
+└ TC-14 Cantidad cero
+  POST https://fakestoreapi.com/carts [201 Created, 706B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 33. Status code is 400 (DEF-02 if it fails)
+  √  Error response explains the problem (DEF-02 if it fails)
+
+└ TC-14 Cantidad negativa
+  POST https://fakestoreapi.com/carts [201 Created, 705B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 34. Status code is 400 (DEF-02 if it fails)
+  √  Error response explains the problem (DEF-02 if it fails)
+
+└ TC-15 Body incompleto
+  POST https://fakestoreapi.com/carts [201 Created, 653B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 35. Status code is 400 (DEF-03 if it fails)
+  √  Error response explains the problem (DEF-03 if it fails)
+
+└ TC-16 Tipo de dato incorrecto
+  POST https://fakestoreapi.com/carts [201 Created, 694B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 36. Status code is 400 (DEF-04 if it fails)
+  √  Error response explains the problem (DEF-04 if it fails)
+
+└ TC-16 Id de producto no numérico
+  GET https://fakestoreapi.com/products/abc [200 OK, 602B, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+ 37. Status code is 400 (DEF-05 if it fails)
+ 38. Error response explains the problem (DEF-05 if it fails)
+
+└ TC-17 JSON malformado
+  POST https://fakestoreapi.com/carts [400 Bad Request, 1.76kB, 181ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 400
+  √  Error message says Bad Request
+ 39. Error is returned as JSON (DEF-06 if it fails)
+
+└ TC-18 Login con credenciales inválidas
+  POST https://fakestoreapi.com/auth/login [401 Unauthorized, 681B, 277ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 401
+  √  Error message is clear
+  √  No token is returned
+
+└ TC-18 Login sin credenciales
+  POST https://fakestoreapi.com/auth/login [400 Bad Request, 698B, 179ms]
+  √  Response time is below 1000 ms
+  √  No unexpected server error (5xx)
+  √  Status code is 400
+  √  Error message asks for username and password
+  √  No token is returned
+
+└ TC-22 Proveedor externo caído (mock)
+  ┌
+  │ 'mock_url is empty: skipping provider down mock'
+  └
+
+┌─────────────────────────┬────────────────────┬────────────────────┐
+│                         │           executed │             failed │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│              iterations │                  3 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│                requests │                 75 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│            test-scripts │                144 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│      prerequest-scripts │                  3 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│              assertions │                360 │                 39 │
+├─────────────────────────┴────────────────────┴────────────────────┤
+│ total run duration: 21.8s                                         │
+├───────────────────────────────────────────────────────────────────┤
+│ total data received: 136.48kB (approx)                            │
+├───────────────────────────────────────────────────────────────────┤
+│ average response time: 203ms [min: 178ms, max: 286ms, s.d.: 40ms] │
+└───────────────────────────────────────────────────────────────────┘
+
+[31m   # [39m[31m failure        [39m[31m detail                                                              [39m
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 01.  AssertionError  Created cart can be retrieved (DEF-08 if it fails)                  
+      iteration: 1    expected null not to be null                                        
+                      at assertion:1 in test-script                                       
+                      inside "Carrito / TC-19 Consultar carrito recién creado"            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 02.  AssertionError  Retrieved cart has products (DEF-08 if it fails)                    
+      iteration: 1    expected null not to be null                                        
+                      at assertion:2 in test-script                                       
+                      inside "Carrito / TC-19 Consultar carrito recién creado"            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 03.  AssertionError  Status code is 401 without token (DEF-07 if it fails)               
+      iteration: 1    expected response to have status code 401 but got 201               
+                      at assertion:1 in test-script                                       
+                      inside "Checkout / TC-12 Checkout sin token"                        
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 04.  AssertionError  Status code is 404 (DEF-01 if it fails)                             
+      iteration: 1    expected response to have status code 404 but got 200               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-13 Producto inexistente"                       
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 05.  AssertionError  Error body explains the product does not exist (DEF-01 if it fails) 
+      iteration: 1    expected +0 to be above +0                                          
+                      at assertion:1 in test-script                                       
+                      inside "Errores / TC-13 Producto inexistente"                       
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 06.  AssertionError  Status code is 400 (DEF-09 if it fails)                             
+      iteration: 1    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-13 Carrito con producto inexistente"           
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 07.  AssertionError  Status code is 400 (DEF-02 if it fails)                             
+      iteration: 1    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-14 Cantidad cero"                              
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 08.  AssertionError  Status code is 400 (DEF-02 if it fails)                             
+      iteration: 1    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-14 Cantidad negativa"                          
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 09.  AssertionError  Status code is 400 (DEF-03 if it fails)                             
+      iteration: 1    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-15 Body incompleto"                            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 10.  AssertionError  Status code is 400 (DEF-04 if it fails)                             
+      iteration: 1    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-16 Tipo de dato incorrecto"                    
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 11.  AssertionError  Status code is 400 (DEF-05 if it fails)                             
+      iteration: 1    expected response to have status code 400 but got 200               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-16 Id de producto no numérico"                 
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 12.  AssertionError  Error response explains the problem (DEF-05 if it fails)            
+      iteration: 1    expected +0 to be above +0                                          
+                      at assertion:1 in test-script                                       
+                      inside "Errores / TC-16 Id de producto no numérico"                 
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 13.  AssertionError  Error is returned as JSON (DEF-06 if it fails)                      
+      iteration: 1    expected 'text/html; charset=utf-8' to include 'application/json'   
+                      at assertion:2 in test-script                                       
+                      inside "Errores / TC-17 JSON malformado"                            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 14.  AssertionError  Created cart can be retrieved (DEF-08 if it fails)                  
+      iteration: 2    expected null not to be null                                        
+                      at assertion:1 in test-script                                       
+                      inside "Carrito / TC-19 Consultar carrito recién creado"            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 15.  AssertionError  Retrieved cart has products (DEF-08 if it fails)                    
+      iteration: 2    expected null not to be null                                        
+                      at assertion:2 in test-script                                       
+                      inside "Carrito / TC-19 Consultar carrito recién creado"            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 16.  AssertionError  Status code is 401 without token (DEF-07 if it fails)               
+      iteration: 2    expected response to have status code 401 but got 201               
+                      at assertion:1 in test-script                                       
+                      inside "Checkout / TC-12 Checkout sin token"                        
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 17.  AssertionError  Status code is 404 (DEF-01 if it fails)                             
+      iteration: 2    expected response to have status code 404 but got 200               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-13 Producto inexistente"                       
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 18.  AssertionError  Error body explains the product does not exist (DEF-01 if it fails) 
+      iteration: 2    expected +0 to be above +0                                          
+                      at assertion:1 in test-script                                       
+                      inside "Errores / TC-13 Producto inexistente"                       
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 19.  AssertionError  Status code is 400 (DEF-09 if it fails)                             
+      iteration: 2    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-13 Carrito con producto inexistente"           
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 20.  AssertionError  Status code is 400 (DEF-02 if it fails)                             
+      iteration: 2    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-14 Cantidad cero"                              
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 21.  AssertionError  Status code is 400 (DEF-02 if it fails)                             
+      iteration: 2    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-14 Cantidad negativa"                          
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 22.  AssertionError  Status code is 400 (DEF-03 if it fails)                             
+      iteration: 2    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-15 Body incompleto"                            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 23.  AssertionError  Status code is 400 (DEF-04 if it fails)                             
+      iteration: 2    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-16 Tipo de dato incorrecto"                    
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 24.  AssertionError  Status code is 400 (DEF-05 if it fails)                             
+      iteration: 2    expected response to have status code 400 but got 200               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-16 Id de producto no numérico"                 
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 25.  AssertionError  Error response explains the problem (DEF-05 if it fails)            
+      iteration: 2    expected +0 to be above +0                                          
+                      at assertion:1 in test-script                                       
+                      inside "Errores / TC-16 Id de producto no numérico"                 
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 26.  AssertionError  Error is returned as JSON (DEF-06 if it fails)                      
+      iteration: 2    expected 'text/html; charset=utf-8' to include 'application/json'   
+                      at assertion:2 in test-script                                       
+                      inside "Errores / TC-17 JSON malformado"                            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 27.  AssertionError  Created cart can be retrieved (DEF-08 if it fails)                  
+      iteration: 3    expected null not to be null                                        
+                      at assertion:1 in test-script                                       
+                      inside "Carrito / TC-19 Consultar carrito recién creado"            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 28.  AssertionError  Retrieved cart has products (DEF-08 if it fails)                    
+      iteration: 3    expected null not to be null                                        
+                      at assertion:2 in test-script                                       
+                      inside "Carrito / TC-19 Consultar carrito recién creado"            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 29.  AssertionError  Status code is 401 without token (DEF-07 if it fails)               
+      iteration: 3    expected response to have status code 401 but got 201               
+                      at assertion:1 in test-script                                       
+                      inside "Checkout / TC-12 Checkout sin token"                        
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 30.  AssertionError  Status code is 404 (DEF-01 if it fails)                             
+      iteration: 3    expected response to have status code 404 but got 200               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-13 Producto inexistente"                       
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 31.  AssertionError  Error body explains the product does not exist (DEF-01 if it fails) 
+      iteration: 3    expected +0 to be above +0                                          
+                      at assertion:1 in test-script                                       
+                      inside "Errores / TC-13 Producto inexistente"                       
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 32.  AssertionError  Status code is 400 (DEF-09 if it fails)                             
+      iteration: 3    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-13 Carrito con producto inexistente"           
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 33.  AssertionError  Status code is 400 (DEF-02 if it fails)                             
+      iteration: 3    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-14 Cantidad cero"                              
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 34.  AssertionError  Status code is 400 (DEF-02 if it fails)                             
+      iteration: 3    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-14 Cantidad negativa"                          
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 35.  AssertionError  Status code is 400 (DEF-03 if it fails)                             
+      iteration: 3    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-15 Body incompleto"                            
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 36.  AssertionError  Status code is 400 (DEF-04 if it fails)                             
+      iteration: 3    expected response to have status code 400 but got 201               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-16 Tipo de dato incorrecto"                    
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 37.  AssertionError  Status code is 400 (DEF-05 if it fails)                             
+      iteration: 3    expected response to have status code 400 but got 200               
+                      at assertion:0 in test-script                                       
+                      inside "Errores / TC-16 Id de producto no numérico"                 
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 38.  AssertionError  Error response explains the problem (DEF-05 if it fails)            
+      iteration: 3    expected +0 to be above +0                                          
+                      at assertion:1 in test-script                                       
+                      inside "Errores / TC-16 Id de producto no numérico"                 
+[90m     [39m[90m                [39m[90m                                                                     [39m
+ 39.  AssertionError  Error is returned as JSON (DEF-06 if it fails)                      
+      iteration: 3    expected 'text/html; charset=utf-8' to include 'application/json'   
+                      at assertion:2 in test-script                                       
+                      inside "Errores / TC-17 JSON malformado"                            

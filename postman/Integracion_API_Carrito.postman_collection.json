@@ -1,0 +1,1163 @@
+{
+  "info": {
+    "_postman_id": "699efd64-11bb-46d3-a90e-ba3cb860c961",
+    "name": "Integración API - Carrito",
+    "description": "Laboratorio 7 - Pruebas de integración del flujo de carrito sobre FakeStore API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Validaciones comunes a todos los requests",
+          "const max_ms = Number(pm.environment.get('max_response_ms'));",
+          "pm.test('Response time is below ' + max_ms + ' ms', function () {",
+          "  pm.expect(pm.response.responseTime).to.be.below(max_ms);",
+          "});",
+          "",
+          "if (pm.info.requestName.indexOf('TC-22') === -1) {",
+          "  pm.test('No unexpected server error (5xx)', function () {",
+          "    pm.expect(pm.response.code).to.be.below(500);",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Catálogo",
+      "description": "Consulta de productos y validación de contrato.",
+      "item": [
+        {
+          "name": "TC-01 Consultar catálogo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const products = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is a non empty product list', function () {",
+                  "  pm.expect(products).to.be.an('array');",
+                  "  pm.expect(products.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Every product has id, title and numeric price', function () {",
+                  "  for (const product of products) {",
+                  "    pm.expect(product).to.have.property('id');",
+                  "    pm.expect(product).to.have.property('title');",
+                  "    pm.expect(product.price).to.be.a('number');",
+                  "  }",
+                  "});",
+                  "",
+                  "// Cada iteración usa productos distintos para variar los datos de prueba",
+                  "const index = pm.info.iteration % (products.length - 1);",
+                  "const first_product = products[index];",
+                  "const second_product = products[index + 1];",
+                  "pm.environment.set('product_id', first_product.id);",
+                  "pm.environment.set('product_price', first_product.price);",
+                  "pm.environment.set('product_title', first_product.title);",
+                  "pm.environment.set('product_id_2', second_product.id);",
+                  "pm.environment.set('product_price_2', second_product.price);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products",
+            "description": "Consulta el catálogo y guarda dos productos en el environment."
+          }
+        },
+        {
+          "name": "TC-02 Consultar detalle de producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const product = pm.response.json();",
+                  "const expected_id = Number(pm.environment.get('product_id'));",
+                  "const expected_price = Number(pm.environment.get('product_price'));",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Product id matches the selected product', function () {",
+                  "  pm.expect(product.id).to.eql(expected_id);",
+                  "});",
+                  "",
+                  "pm.test('Product price matches the catalog price', function () {",
+                  "  pm.expect(product.price).to.eql(expected_price);",
+                  "});",
+                  "",
+                  "pm.test('Product title matches the catalog title', function () {",
+                  "  pm.expect(product.title).to.eql(pm.environment.get('product_title'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products/{{product_id}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "TC-03 Contrato estricto de productos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const products = pm.response.json();",
+                  "const valid_categories = ['electronics', 'jewelery', \"men's clothing\", \"women's clothing\"];",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('id is an integer and title a non empty string', function () {",
+                  "  for (const product of products) {",
+                  "    pm.expect(Number.isInteger(product.id), 'id of ' + product.id).to.be.true;",
+                  "    pm.expect(product.title).to.be.a('string').and.not.empty;",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('price is a positive number', function () {",
+                  "  for (const product of products) {",
+                  "    pm.expect(product.price, 'price of ' + product.id).to.be.a('number').above(0);",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('category is one of the known categories', function () {",
+                  "  for (const product of products) {",
+                  "    pm.expect(valid_categories, 'category of ' + product.id).to.include(product.category);",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('image is an https URL', function () {",
+                  "  for (const product of products) {",
+                  "    pm.expect(product.image, 'image of ' + product.id).to.be.a('string').and.match(/^https:\\/\\//);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products",
+            "description": ""
+          }
+        },
+        {
+          "name": "TC-04 Consultar categorías",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const categories = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Categories is a list of strings', function () {",
+                  "  pm.expect(categories).to.be.an('array').with.lengthOf(4);",
+                  "  for (const category of categories) {",
+                  "    pm.expect(category).to.be.a('string');",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('Known categories are present', function () {",
+                  "  pm.expect(categories).to.include.members(['electronics', 'jewelery', \"men's clothing\", \"women's clothing\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products/categories",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Carrito",
+      "description": "Creación, consulta, actualización e idempotencia del carrito. Limitación: FakeStore no persiste los carritos creados (siempre id 11).",
+      "item": [
+        {
+          "name": "TC-06 Crear carrito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cart = pm.response.json();",
+                  "const quantity = Number(pm.environment.get('quantity'));",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Cart has a numeric id and the right user', function () {",
+                  "  pm.expect(cart.id).to.be.a('number');",
+                  "  pm.expect(cart.userId).to.eql(Number(pm.environment.get('user_id')));",
+                  "});",
+                  "",
+                  "pm.test('Cart contains the selected products', function () {",
+                  "  pm.expect(cart.products).to.be.an('array').with.lengthOf(2);",
+                  "  pm.expect(cart.products[0].productId).to.eql(Number(pm.environment.get('product_id')));",
+                  "  pm.expect(cart.products[1].productId).to.eql(Number(pm.environment.get('product_id_2')));",
+                  "});",
+                  "",
+                  "pm.test('Quantities are positive and match the request', function () {",
+                  "  pm.expect(cart.products[0].quantity).to.eql(quantity);",
+                  "  pm.expect(cart.products[1].quantity).to.eql(1);",
+                  "  for (const line of cart.products) {",
+                  "    pm.expect(line.quantity).to.be.above(0);",
+                  "  }",
+                  "});",
+                  "",
+                  "// La API no calcula total: se calcula aquí con los precios del catálogo",
+                  "const expected_total = Number(pm.environment.get('product_price')) * quantity + Number(pm.environment.get('product_price_2'));",
+                  "pm.environment.set('cart_id', cart.id);",
+                  "pm.environment.set('expected_cart_total', expected_total.toFixed(2));",
+                  "pm.environment.set('last_cart_response', JSON.stringify(cart));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"date\": \"2026-10-18\",\n  \"products\": [\n    { \"productId\": {{product_id}}, \"quantity\": {{quantity}} },\n    { \"productId\": {{product_id_2}}, \"quantity\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-07 Consultar carrito existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cart = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Cart has id, userId and date', function () {",
+                  "  pm.expect(cart.id).to.eql(Number(pm.environment.get('seed_cart_id')));",
+                  "  pm.expect(cart.userId).to.be.a('number');",
+                  "  pm.expect(cart.date).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Every line has integer productId and positive quantity', function () {",
+                  "  pm.expect(cart.products).to.be.an('array').that.is.not.empty;",
+                  "  for (const line of cart.products) {",
+                  "    pm.expect(Number.isInteger(line.productId)).to.be.true;",
+                  "    pm.expect(Number.isInteger(line.quantity)).to.be.true;",
+                  "    pm.expect(line.quantity).to.be.above(0);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/carts/{{seed_cart_id}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "TC-23 Actualizar cantidad del carrito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cart = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated cart keeps its id', function () {",
+                  "  pm.expect(cart.id).to.eql(Number(pm.environment.get('seed_cart_id')));",
+                  "});",
+                  "",
+                  "pm.test('Quantity was updated to 3', function () {",
+                  "  pm.expect(cart.products[0].productId).to.eql(Number(pm.environment.get('product_id')));",
+                  "  pm.expect(cart.products[0].quantity).to.eql(3);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{seed_cart_id}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"products\": [ { \"productId\": {{product_id}}, \"quantity\": 3 } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-19 Idempotencia - repetir el mismo POST",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cart = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Repeating the same POST returns the same cart id (no duplicate)', function () {",
+                  "  pm.expect(cart.id).to.eql(Number(pm.environment.get('cart_id')));",
+                  "});",
+                  "",
+                  "pm.test('Repeating the same POST returns the same body', function () {",
+                  "  pm.expect(JSON.stringify(cart)).to.eql(pm.environment.get('last_cart_response'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"date\": \"2026-10-18\",\n  \"products\": [\n    { \"productId\": {{product_id}}, \"quantity\": {{quantity}} },\n    { \"productId\": {{product_id_2}}, \"quantity\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-19 Consultar carrito recién creado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Created cart can be retrieved (DEF-08 if it fails)', function () {",
+                  "  const cart = pm.response.json();",
+                  "  pm.expect(cart).to.not.be.null;",
+                  "  pm.expect(cart.id).to.eql(Number(pm.environment.get('cart_id')));",
+                  "});",
+                  "",
+                  "pm.test('Retrieved cart has products (DEF-08 if it fails)', function () {",
+                  "  const cart = pm.response.json();",
+                  "  pm.expect(cart).to.not.be.null;",
+                  "  pm.expect(cart.products).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/carts/{{cart_id}}",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Total",
+      "description": "La API no calcula totales: se calculan en Postman con los precios del catálogo.",
+      "item": [
+        {
+          "name": "TC-08 Calcular total del carrito 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cart = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// La API no devuelve total: se consultan los precios y se calcula en Postman",
+                  "pm.sendRequest(pm.environment.get('base_url') + '/products', function (error, response) {",
+                  "  pm.test('Price lookup succeeded', function () {",
+                  "    pm.expect(error).to.be.null;",
+                  "    pm.expect(response.code).to.eql(200);",
+                  "  });",
+                  "",
+                  "  const prices = {};",
+                  "  for (const product of response.json()) {",
+                  "    prices[product.id] = product.price;",
+                  "  }",
+                  "",
+                  "  let total = 0;",
+                  "  for (const line of cart.products) {",
+                  "    pm.expect(prices, 'price for ' + line.productId).to.have.property(String(line.productId));",
+                  "    total += prices[line.productId] * line.quantity;",
+                  "  }",
+                  "  total = Number(total.toFixed(2));",
+                  "  pm.environment.set('seed_cart_total', total);",
+                  "",
+                  "  pm.test('Calculated total is positive', function () {",
+                  "    pm.expect(total).to.be.above(0);",
+                  "  });",
+                  "",
+                  "  pm.test('Calculated total matches the expected total', function () {",
+                  "    pm.expect(total).to.eql(Number(pm.environment.get('expected_seed_total')));",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/carts/{{seed_cart_id}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "TC-10 Recalcular total del carrito creado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const products = pm.response.json();",
+                  "const quantity = Number(pm.environment.get('quantity'));",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Recalcula el total del carrito creado con los precios vigentes",
+                  "let price_1 = null;",
+                  "let price_2 = null;",
+                  "for (const product of products) {",
+                  "  if (product.id === Number(pm.environment.get('product_id'))) {",
+                  "    price_1 = product.price;",
+                  "  }",
+                  "  if (product.id === Number(pm.environment.get('product_id_2'))) {",
+                  "    price_2 = product.price;",
+                  "  }",
+                  "}",
+                  "",
+                  "pm.test('Both cart products still exist in the catalog', function () {",
+                  "  pm.expect(price_1).to.not.be.null;",
+                  "  pm.expect(price_2).to.not.be.null;",
+                  "});",
+                  "",
+                  "pm.test('Total at checkout equals the total at cart creation', function () {",
+                  "  const total = (price_1 * quantity + price_2).toFixed(2);",
+                  "  pm.expect(total).to.eql(pm.environment.get('expected_cart_total'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkout",
+      "description": "Login, checkout con token y checkout sin token (autenticación simulada).",
+      "item": [
+        {
+          "name": "TC-05 Login (obtener token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 or 201', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "pm.test('Response contains a token string', function () {",
+                  "  pm.expect(pm.response.json().token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test('Token has JWT format (three parts)', function () {",
+                  "  const parts = pm.response.json().token.split('.');",
+                  "  pm.expect(parts).to.have.lengthOf(3);",
+                  "});",
+                  "",
+                  "pm.environment.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-11 Checkout con token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const cart = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Request was sent with a Bearer token', function () {",
+                  "  const auth_header = pm.request.headers.get('Authorization');",
+                  "  pm.expect(auth_header).to.match(/^Bearer .+\\..+\\..+$/);",
+                  "});",
+                  "",
+                  "pm.test('Confirmed cart has id and the selected products', function () {",
+                  "  pm.expect(cart.id).to.be.a('number');",
+                  "  pm.expect(cart.products).to.have.lengthOf(2);",
+                  "});",
+                  "",
+                  "pm.test('Checkout total matches the expected total', function () {",
+                  "  let total = 0;",
+                  "  const prices = [Number(pm.environment.get('product_price')), Number(pm.environment.get('product_price_2'))];",
+                  "  for (const [index, line] of cart.products.entries()) {",
+                  "    total += prices[index] * line.quantity;",
+                  "  }",
+                  "  pm.expect(total.toFixed(2)).to.eql(pm.environment.get('expected_cart_total'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"date\": \"2026-10-18\",\n  \"products\": [\n    { \"productId\": {{product_id}}, \"quantity\": {{quantity}} },\n    { \"productId\": {{product_id_2}}, \"quantity\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-12 Checkout sin token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Request was sent without Authorization header', function () {",
+                  "  pm.expect(pm.request.headers.has('Authorization')).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Status code is 401 without token (DEF-07 if it fails)', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response is not a server error', function () {",
+                  "  pm.expect(pm.response.code).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"date\": \"2026-10-18\",\n  \"products\": [\n    { \"productId\": {{product_id}}, \"quantity\": {{quantity}} },\n    { \"productId\": {{product_id_2}}, \"quantity\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Errores",
+      "description": "Pruebas negativas obligatorias. Un fallo aquí es un defecto de la API.",
+      "item": [
+        {
+          "name": "TC-13 Producto inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404 (DEF-01 if it fails)', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error body explains the product does not exist (DEF-01 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Response is not a server error', function () {",
+                  "  pm.expect(pm.response.code).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products/{{nonexistent_id}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "TC-13 Carrito con producto inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 (DEF-09 if it fails)', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response explains the problem (DEF-09 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"products\": [ { \"productId\": {{nonexistent_id}}, \"quantity\": 1 } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-14 Cantidad cero",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 (DEF-02 if it fails)', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response explains the problem (DEF-02 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"products\": [ { \"productId\": {{product_id}}, \"quantity\": 0 } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-14 Cantidad negativa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 (DEF-02 if it fails)', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response explains the problem (DEF-02 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"products\": [ { \"productId\": {{product_id}}, \"quantity\": -1 } ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-15 Body incompleto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 (DEF-03 if it fails)', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response explains the problem (DEF-03 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-16 Tipo de dato incorrecto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 (DEF-04 if it fails)', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response explains the problem (DEF-04 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"abc\",\n  \"products\": \"not-a-list\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-16 Id de producto no numérico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 (DEF-05 if it fails)', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response explains the problem (DEF-05 if it fails)', function () {",
+                  "  pm.expect(pm.response.text().length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/products/abc",
+            "description": ""
+          }
+        },
+        {
+          "name": "TC-17 JSON malformado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message says Bad Request', function () {",
+                  "  pm.expect(pm.response.text()).to.include('Bad Request');",
+                  "});",
+                  "",
+                  "pm.test('Error is returned as JSON (DEF-06 if it fails)', function () {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": 1,"
+            }
+          }
+        },
+        {
+          "name": "TC-18 Login con credenciales inválidas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message is clear', function () {",
+                  "  pm.expect(pm.response.text()).to.include('incorrect');",
+                  "});",
+                  "",
+                  "pm.test('No token is returned', function () {",
+                  "  pm.expect(pm.response.text()).to.not.include('token');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"unknown_user\",\n  \"password\": \"wrong_password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-18 Login sin credenciales",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message asks for username and password', function () {",
+                  "  pm.expect(pm.response.text()).to.include('username and password');",
+                  "});",
+                  "",
+                  "pm.test('No token is returned', function () {",
+                  "  pm.expect(pm.response.text()).to.not.include('token');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-22 Proveedor externo caído (mock)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Si no hay mock configurado se omite el request (ver README para crearlo)",
+                  "if (!pm.environment.get('mock_url')) {",
+                  "  console.log('mock_url is empty: skipping provider down mock');",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Mock provider answers 503', function () {",
+                  "  pm.response.to.have.status(503);",
+                  "});",
+                  "",
+                  "pm.test('Error body is JSON with an error message', function () {",
+                  "  pm.expect(pm.response.json()).to.have.property('error');",
+                  "});",
+                  "",
+                  "pm.test('Provider suggests when to retry', function () {",
+                  "  pm.expect(pm.response.headers.has('Retry-After')).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{mock_url}}/products",
+            "description": "Crear un Mock Server en Postman a partir de esta colección y poner su URL en mock_url."
+          },
+          "response": [
+            {
+              "name": "Proveedor caído - 503",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{mock_url}}/products"
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Retry-After",
+                  "value": "30"
+                }
+              ],
+              "body": "{\n  \"error\": \"Service Unavailable\",\n  \"message\": \"Upstream provider is down\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

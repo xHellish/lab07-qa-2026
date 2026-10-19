@@ -1,0 +1,86 @@
+E:\MiscFiles\Python\Lib\site-packages\pytest_asyncio\plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-8.3.4, pluggy-1.6.0 -- E:\MiscFiles\Python\python.exe
+cachedir: .pytest_cache
+rootdir: E:\Escritorio\Lab 7\qa_api_lab
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.11.0, Faker-30.3.0, langsmith-0.3.45, logfire-4.30.0, asyncio-0.25.0, cov-6.0.0, httpx-0.35.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None
+collecting ... collected 55 items
+
+tests/test_api_integration.py::test_tc01_get_products_returns_catalog PASSED [  1%]
+tests/test_api_integration.py::test_tc02_product_detail_matches_catalog PASSED [  3%]
+tests/test_api_integration.py::test_tc03_strict_product_contract PASSED  [  5%]
+tests/test_api_integration.py::test_tc04_categories_cover_catalog PASSED [  7%]
+tests/test_api_integration.py::test_tc05_login_returns_jwt_token PASSED  [  9%]
+tests/test_api_integration.py::test_tc18_login_with_invalid_credentials_fails PASSED [ 10%]
+tests/test_api_integration.py::test_tc18_login_without_credentials_returns_clear_error PASSED [ 12%]
+tests/test_api_integration.py::test_tc06_create_remote_cart_contract PASSED [ 14%]
+tests/test_api_integration.py::test_tc07_existing_cart_contract PASSED   [ 16%]
+tests/test_api_integration.py::test_tc09_insert_product_in_sqlite PASSED [ 18%]
+tests/test_api_integration.py::test_tc23_update_cart_quantity PASSED     [ 20%]
+tests/test_api_integration.py::test_tc08_seed_cart_total_matches_expected PASSED [ 21%]
+tests/test_api_integration.py::test_tc10_local_cart_total PASSED         [ 23%]
+tests/test_api_integration.py::test_tc11_checkout_with_token_persists_order PASSED [ 25%]
+tests/test_api_integration.py::test_tc12_checkout_without_token_is_rejected[None] PASSED [ 27%]
+tests/test_api_integration.py::test_tc12_checkout_without_token_is_rejected[] PASSED [ 29%]
+tests/test_api_integration.py::test_tc12_api_rejects_cart_without_token XFAIL [ 30%]
+tests/test_api_integration.py::test_tc13_missing_product_is_not_added PASSED [ 32%]
+tests/test_api_integration.py::test_tc13_api_returns_404_for_missing_product XFAIL [ 34%]
+tests/test_api_integration.py::test_tc13_api_rejects_cart_with_missing_product XFAIL [ 36%]
+tests/test_api_integration.py::test_tc13_api_returns_404_for_missing_cart XFAIL [ 38%]
+tests/test_api_integration.py::test_tc14_invalid_quantity_is_rejected_locally[0] PASSED [ 40%]
+tests/test_api_integration.py::test_tc14_invalid_quantity_is_rejected_locally[-1] PASSED [ 41%]
+tests/test_api_integration.py::test_tc14_invalid_quantity_is_rejected_locally[-50] PASSED [ 43%]
+tests/test_api_integration.py::test_tc14_quantity_above_stock_is_rejected PASSED [ 45%]
+tests/test_api_integration.py::test_tc14_api_rejects_invalid_quantity[0] XFAIL [ 47%]
+tests/test_api_integration.py::test_tc14_api_rejects_invalid_quantity[-1] XFAIL [ 49%]
+tests/test_api_integration.py::test_tc15_api_rejects_incomplete_body[empty] XFAIL [ 50%]
+tests/test_api_integration.py::test_tc15_api_rejects_incomplete_body[without_products] XFAIL [ 52%]
+tests/test_api_integration.py::test_tc15_api_rejects_incomplete_body[without_user] XFAIL [ 54%]
+tests/test_api_integration.py::test_tc16_wrong_quantity_type_is_rejected_locally[2] PASSED [ 56%]
+tests/test_api_integration.py::test_tc16_wrong_quantity_type_is_rejected_locally[1.5] PASSED [ 58%]
+tests/test_api_integration.py::test_tc16_wrong_quantity_type_is_rejected_locally[True] PASSED [ 60%]
+tests/test_api_integration.py::test_tc16_wrong_quantity_type_is_rejected_locally[None] PASSED [ 61%]
+tests/test_api_integration.py::test_tc16_wrong_product_id_type_is_rejected_locally[abc] PASSED [ 63%]
+tests/test_api_integration.py::test_tc16_wrong_product_id_type_is_rejected_locally[1.0] PASSED [ 65%]
+tests/test_api_integration.py::test_tc16_wrong_product_id_type_is_rejected_locally[True] PASSED [ 67%]
+tests/test_api_integration.py::test_tc16_api_rejects_wrong_types XFAIL   [ 69%]
+tests/test_api_integration.py::test_tc16_api_rejects_non_numeric_product_id XFAIL [ 70%]
+tests/test_api_integration.py::test_tc17_malformed_json_returns_400 PASSED [ 72%]
+tests/test_api_integration.py::test_tc17_malformed_json_error_is_json XFAIL [ 74%]
+tests/test_api_integration.py::test_tc19_get_product_is_idempotent PASSED [ 76%]
+tests/test_api_integration.py::test_tc19_adding_same_product_twice_does_not_duplicate PASSED [ 78%]
+tests/test_api_integration.py::test_tc19_same_post_twice_returns_same_cart PASSED [ 80%]
+tests/test_api_integration.py::test_tc19_created_cart_can_be_retrieved XFAIL [ 81%]
+tests/test_api_integration.py::test_tc20_response_time_is_acceptable[GET-/products-None] PASSED [ 83%]
+tests/test_api_integration.py::test_tc20_response_time_is_acceptable[GET-/products/1-None] PASSED [ 85%]
+tests/test_api_integration.py::test_tc20_response_time_is_acceptable[GET-/products/categories-None] PASSED [ 87%]
+tests/test_api_integration.py::test_tc20_response_time_is_acceptable[GET-/carts/1-None] PASSED [ 89%]
+tests/test_api_integration.py::test_tc20_response_time_is_acceptable[POST-/carts-body4] PASSED [ 90%]
+tests/test_api_integration.py::test_tc21_db_failure_when_adding_item_raises_storage_error PASSED [ 92%]
+tests/test_api_integration.py::test_tc21_db_failure_during_checkout_rolls_back PASSED [ 94%]
+tests/test_api_integration.py::test_tc22_provider_connection_error_is_controlled PASSED [ 96%]
+tests/test_api_integration.py::test_tc22_provider_503_is_controlled PASSED [ 98%]
+tests/test_api_integration.py::test_tc22_checkout_with_provider_down_keeps_cart PASSED [100%]
+
+- generated xml file: E:\Escritorio\Lab 7\qa_api_lab\reports\pytest_junit.xml -
+=========================== short test summary info ===========================
+XFAIL tests/test_api_integration.py::test_tc12_api_rejects_cart_without_token - DEF-07: POST /carts accepts requests without token
+XFAIL tests/test_api_integration.py::test_tc13_api_returns_404_for_missing_product - DEF-01: GET /products/{id} returns 200 with empty body
+XFAIL tests/test_api_integration.py::test_tc13_api_rejects_cart_with_missing_product - DEF-09: POST /carts accepts products that do not exist
+XFAIL tests/test_api_integration.py::test_tc13_api_returns_404_for_missing_cart - DEF-10: GET /carts/{id} returns 200 with null body
+XFAIL tests/test_api_integration.py::test_tc14_api_rejects_invalid_quantity[0] - DEF-02: POST /carts accepts zero or negative quantities
+XFAIL tests/test_api_integration.py::test_tc14_api_rejects_invalid_quantity[-1] - DEF-02: POST /carts accepts zero or negative quantities
+XFAIL tests/test_api_integration.py::test_tc15_api_rejects_incomplete_body[empty] - DEF-03: POST /carts accepts incomplete bodies
+XFAIL tests/test_api_integration.py::test_tc15_api_rejects_incomplete_body[without_products] - DEF-03: POST /carts accepts incomplete bodies
+XFAIL tests/test_api_integration.py::test_tc15_api_rejects_incomplete_body[without_user] - DEF-03: POST /carts accepts incomplete bodies
+XFAIL tests/test_api_integration.py::test_tc16_api_rejects_wrong_types - DEF-04: POST /carts accepts wrong data types
+XFAIL tests/test_api_integration.py::test_tc16_api_rejects_non_numeric_product_id - DEF-05: GET /products/abc returns 200 with empty body
+XFAIL tests/test_api_integration.py::test_tc17_malformed_json_error_is_json - DEF-06: malformed JSON error is returned as HTML
+XFAIL tests/test_api_integration.py::test_tc19_created_cart_can_be_retrieved - DEF-08: created carts are not persisted by the API
+======================= 42 passed, 13 xfailed in 29.43s =======================

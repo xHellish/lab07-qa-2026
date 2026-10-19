@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Pytest / Ruff
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node (Newman)
+node_modules/
+newman/
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Archivos temporales de Office
+~$*
