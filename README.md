@@ -2,6 +2,15 @@
 
 Pruebas de integración del flujo de compra **catálogo -> carrito -> total -> checkout** sobre la API pública [FakeStore API](https://fakestoreapi.com). Incluye una colección de Postman con pruebas automatizadas y un proyecto Pytest que integra la API con una base SQLite en memoria (persistencia falsa).
 
+## Integrantes
+
+| Nombre | Carné |
+|---|---|
+| Ben Farz | 2023121041 |
+| Josué Calderón | 2023380883 |
+
+Curso: Aseguramiento de la Calidad del Software
+
 ## Estructura
 
 ```
